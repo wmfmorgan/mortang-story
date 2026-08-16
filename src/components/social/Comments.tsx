@@ -10,12 +10,20 @@ type Props = {
   perspectiveId?: string | null
   personId: string
   isAdmin: boolean
+  label?: string
 }
 
-export function Comments({ storyId, perspectiveId = null, personId, isAdmin }: Props) {
+export function Comments({
+  storyId,
+  perspectiveId = null,
+  personId,
+  isAdmin,
+  label,
+}: Props) {
   const [comments, setComments] = useState<Row[]>([])
   const [body, setBody] = useState('')
   const [saving, setSaving] = useState(false)
+  const [open, setOpen] = useState(false)
   const [composing, setComposing] = useState(false)
 
   async function load() {
@@ -56,54 +64,81 @@ export function Comments({ storyId, perspectiveId = null, personId, isAdmin }: P
     await load()
   }
 
+  const count = comments.length
+  const toggleLabel =
+    label ??
+    (count === 0 ? 'Comments' : count === 1 ? '1 comment' : `${count} comments`)
+
   return (
-    <div className="space-y-3">
-      {comments.map((comment) => (
-        <div key={comment.id} className="border-t border-rule/70 pt-3">
-          <div className="flex items-baseline justify-between gap-3">
-            <p className="text-sm font-medium text-ink">{comment.author.display_name}</p>
-            {comment.author_person_id === personId || isAdmin ? (
-              <button
-                type="button"
-                className="text-xs text-ink-soft hover:text-oxblood"
-                onClick={() => void remove(comment.id)}
-              >
-                Delete
-              </button>
-            ) : null}
-          </div>
-          <p className="mt-1 whitespace-pre-wrap text-sm text-ink-soft">{comment.body}</p>
-        </div>
-      ))}
-      {composing ? (
-        <form onSubmit={(event) => void submit(event)} className="space-y-2">
-          <Textarea
-            value={body}
-            onChange={(event) => setBody(event.target.value)}
-            placeholder="A short comment — not a telling."
-            autoFocus
-          />
-          <div className="flex flex-wrap gap-2">
-            <Button type="submit" variant="ghost" disabled={saving || !body.trim()}>
-              {saving ? 'Saving…' : 'Post comment'}
-            </Button>
-            <Button
+    <div>
+      <button
+        type="button"
+        className="text-xs tracking-wide text-ink-soft hover:text-ink"
+        onClick={() => {
+          setOpen((value) => !value)
+          if (open) setComposing(false)
+        }}
+        aria-expanded={open}
+      >
+        {toggleLabel}
+      </button>
+      {open ? (
+        <div className="mt-3 space-y-3 border-l border-rule pl-3">
+          {count === 0 && !composing ? (
+            <p className="text-xs text-ink-soft">No comments yet.</p>
+          ) : null}
+          {comments.map((comment) => (
+            <div key={comment.id}>
+              <div className="flex items-baseline justify-between gap-3">
+                <p className="text-xs font-medium text-ink-soft">{comment.author.display_name}</p>
+                {comment.author_person_id === personId || isAdmin ? (
+                  <button
+                    type="button"
+                    className="text-xs text-ink-soft hover:text-oxblood"
+                    onClick={() => void remove(comment.id)}
+                  >
+                    Delete
+                  </button>
+                ) : null}
+              </div>
+              <p className="mt-0.5 whitespace-pre-wrap text-sm text-ink-soft">{comment.body}</p>
+            </div>
+          ))}
+          {composing ? (
+            <form onSubmit={(event) => void submit(event)} className="space-y-2">
+              <Textarea
+                value={body}
+                onChange={(event) => setBody(event.target.value)}
+                placeholder="A short comment — not a telling."
+                autoFocus
+              />
+              <div className="flex flex-wrap gap-2">
+                <Button type="submit" variant="ghost" disabled={saving || !body.trim()}>
+                  {saving ? 'Saving…' : 'Post'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setComposing(false)
+                    setBody('')
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          ) : (
+            <button
               type="button"
-              variant="ghost"
-              onClick={() => {
-                setComposing(false)
-                setBody('')
-              }}
+              className="text-xs text-oxblood hover:underline"
+              onClick={() => setComposing(true)}
             >
-              Cancel
-            </Button>
-          </div>
-        </form>
-      ) : (
-        <Button type="button" variant="ghost" onClick={() => setComposing(true)}>
-          Add comment
-        </Button>
-      )}
+              Add a comment
+            </button>
+          )}
+        </div>
+      ) : null}
     </div>
   )
 }

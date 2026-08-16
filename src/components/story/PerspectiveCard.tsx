@@ -33,7 +33,7 @@ export function PerspectiveCard({ storyId, perspective, current }: Props) {
       <p className="mt-4 whitespace-pre-wrap font-serif text-lg leading-relaxed text-ink">
         {perspective.body}
       </p>
-      <div className="mt-5 space-y-4">
+      <div className="mt-5 space-y-2">
         <Reactions
           storyId={storyId}
           perspectiveId={perspective.id}

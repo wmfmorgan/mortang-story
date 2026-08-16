@@ -144,17 +144,15 @@ export function StoryPage() {
           </div>
         ) : null}
       </div>
-      <section className="mt-12">
-        <h2 className="font-serif text-lg text-ink">On this story</h2>
-        <div className="mt-4 space-y-4">
-          <Reactions storyId={detail.id} personId={person.id} />
-          <Comments
-            storyId={detail.id}
-            personId={person.id}
-            isAdmin={person.role === 'admin'}
-          />
-        </div>
-      </section>
+      <footer className="mt-14 space-y-2 border-t border-rule/70 pt-4">
+        <Reactions storyId={detail.id} personId={person.id} />
+        <Comments
+          storyId={detail.id}
+          personId={person.id}
+          isAdmin={person.role === 'admin'}
+          label="Comments on this event"
+        />
+      </footer>
       <ErrorText>{error}</ErrorText>
     </Page>
   )
