@@ -4,6 +4,7 @@ import type { Family, Person } from '../types/database'
 export type AppState = {
   person: Person
   family: Family
+  setPerson: (person: Person) => void
   signOut: () => Promise<void>
 }
 

@@ -15,6 +15,7 @@ import { OnboardingPage } from './pages/OnboardingPage'
 import { PeoplePage } from './pages/PeoplePage'
 import { PersonPage } from './pages/PersonPage'
 import { StoryPage } from './pages/StoryPage'
+import { ProfilePage } from './pages/ProfilePage'
 import { TimelinePage } from './pages/TimelinePage'
 import type { Family, Person } from './types/database'
 
@@ -29,6 +30,7 @@ export default function App() {
   const { session, loading: sessionLoading } = useSession()
   const [gate, setGate] = useState<Gate>({ status: 'loading' })
   const [tick, setTick] = useState(0)
+  const [personOverride, setPersonOverride] = useState<Person | null>(null)
 
   const refresh = useCallback(() => setTick((value) => value + 1), [])
 
@@ -112,11 +114,22 @@ export default function App() {
   }
 
   return (
-    <AppProvider value={{ person: gate.person, family: gate.family, signOut }}>
+    <AppProvider
+      value={{
+        person:
+          personOverride && personOverride.id === gate.person.id
+            ? personOverride
+            : gate.person,
+        family: gate.family,
+        setPerson: setPersonOverride,
+        signOut,
+      }}
+    >
       <Routes>
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route element={<AppShell />}>
           <Route path="/" element={<TimelinePage />} />
+          <Route path="/me" element={<ProfilePage />} />
           <Route path="/people" element={<PeoplePage />} />
           <Route path="/people/:id" element={<PersonPage />} />
           <Route path="/stories/new" element={<NewStoryPage />} />

@@ -7,6 +7,7 @@ import {
   emptyPersonDraft,
   yearFromDraft,
 } from '../components/PersonFields'
+import { Avatar } from '../components/Avatar'
 import { ErrorText, Page, Spinner, Title } from '../components/ui'
 import { useApp } from '../context/AppContext'
 import {
@@ -90,8 +91,9 @@ export function PeoplePage() {
       <ul className="mt-8 divide-y divide-rule">
         {people.map((item) => (
           <li key={item.id} className="py-3">
-            <div className="flex items-baseline justify-between gap-3">
-              <Link to={`/people/${item.id}`} className="min-w-0 hover:text-oxblood">
+            <div className="flex items-center justify-between gap-3">
+              <Link to={`/people/${item.id}`} className="flex min-w-0 items-center gap-3 hover:text-oxblood">
+                <Avatar person={item} size="sm" />
                 <span className="font-serif text-lg">{item.display_name}</span>
                 <span className="ml-2 text-sm text-ink-soft">
                   {personYears(item) ? `${personYears(item)} · ` : ''}

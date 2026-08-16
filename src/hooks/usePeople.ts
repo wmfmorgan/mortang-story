@@ -111,6 +111,23 @@ export async function updatePerson(
   return sendInvite(person.id, email)
 }
 
+export async function uploadAvatar(person: Person, file: File): Promise<Person> {
+  const ext = file.name.split('.').pop()?.toLowerCase().replace(/[^\w]+/g, '') || 'jpg'
+  const path = `${person.family_id}/avatars/${person.id}-${Date.now()}.${ext}`
+  const { error: uploadError } = await supabase.storage
+    .from('family-media')
+    .upload(path, file, { upsert: false, contentType: file.type || undefined })
+  if (uploadError) throw new Error(uploadError.message)
+  const { data, error } = await supabase
+    .from('people')
+    .update({ avatar_path: path })
+    .eq('id', person.id)
+    .select('*')
+    .single()
+  if (error || !data) throw new Error(error?.message ?? 'Could not save the picture')
+  return data as Person
+}
+
 export function personYears(person: Person): string | null {
   if (!person.birth_year && !person.death_year) return null
   return `${person.birth_year ?? '—'} – ${person.death_year ?? ''}`

@@ -8,6 +8,7 @@ import {
   yearFromDraft,
   type PersonDraft,
 } from '../components/PersonFields'
+import { Avatar } from '../components/Avatar'
 import { Timeline } from '../components/timeline/Timeline'
 import { Button, EmptyState, ErrorText, Page, Spinner, Title } from '../components/ui'
 import { useApp } from '../context/AppContext'
@@ -121,7 +122,10 @@ export function PersonPage() {
         {statusLabel[personStatus(profile)]}
         {profile.invite_email && !profile.user_id ? ` · ${profile.invite_email}` : ''}
       </p>
-      <Title>{profile.display_name}</Title>
+      <div className="mt-3 flex items-center gap-4">
+        <Avatar person={profile} size="md" />
+        <Title>{profile.display_name}</Title>
+      </div>
       {personYears(profile) ? <p className="mt-2 text-ink-soft">{personYears(profile)}</p> : null}
       {profile.bio ? <p className="mt-4 max-w-prose text-ink">{profile.bio}</p> : null}
       {editing ? (
