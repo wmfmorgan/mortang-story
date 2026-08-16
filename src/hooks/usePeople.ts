@@ -82,6 +82,35 @@ export async function createPerson(input: {
   return sendInvite(person.id, email)
 }
 
+export async function updatePerson(
+  person: Person,
+  input: {
+    display_name: string
+    birth_year?: number | null
+    death_year?: number | null
+    bio?: string | null
+    email?: string | null
+  },
+): Promise<Person> {
+  const { data, error } = await supabase
+    .from('people')
+    .update({
+      display_name: input.display_name.trim(),
+      birth_year: input.birth_year ?? null,
+      death_year: input.death_year ?? null,
+      bio: input.bio?.trim() || null,
+    })
+    .eq('id', person.id)
+    .select('*')
+    .single()
+  if (error || !data) throw new Error(error?.message ?? 'Could not update this person')
+  const updated = data as Person
+  const email = input.email?.trim().toLowerCase()
+  if (!email || person.user_id) return updated
+  if (email === (person.invite_email ?? '')) return updated
+  return sendInvite(person.id, email)
+}
+
 export function personYears(person: Person): string | null {
   if (!person.birth_year && !person.death_year) return null
   return `${person.birth_year ?? '—'} – ${person.death_year ?? ''}`

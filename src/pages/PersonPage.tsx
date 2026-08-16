@@ -1,9 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useParams } from 'react-router-dom'
+import {
+  PersonFields,
+  PersonFormActions,
+  draftFromPerson,
+  emptyPersonDraft,
+  yearFromDraft,
+  type PersonDraft,
+} from '../components/PersonFields'
 import { Timeline } from '../components/timeline/Timeline'
 import { Button, EmptyState, ErrorText, Page, Spinner, Title } from '../components/ui'
 import { useApp } from '../context/AppContext'
-import { personStatus, personYears } from '../hooks/usePeople'
+import { personStatus, personYears, updatePerson } from '../hooks/usePeople'
 import { fetchStoriesForPerson } from '../hooks/useStories'
 import { downloadStoryBook } from '../lib/pdf/download'
 import { supabase } from '../lib/supabase'
@@ -24,6 +32,9 @@ export function PersonPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [exporting, setExporting] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState<PersonDraft>(emptyPersonDraft)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -61,6 +72,34 @@ export function PersonPage() {
 
   const profile = person
 
+  function startEdit() {
+    setDraft(draftFromPerson(profile))
+    setEditing(true)
+    setError(null)
+  }
+
+  async function save(event: FormEvent) {
+    event.preventDefault()
+    if (!draft.display_name.trim()) return
+    setSaving(true)
+    setError(null)
+    try {
+      const updated = await updatePerson(profile, {
+        display_name: draft.display_name,
+        birth_year: yearFromDraft(draft.birth_year),
+        death_year: yearFromDraft(draft.death_year),
+        bio: draft.bio,
+        email: draft.email,
+      })
+      setPerson(updated)
+      setEditing(false)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save this person')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   async function exportStories() {
     setExporting(true)
     try {
@@ -85,16 +124,36 @@ export function PersonPage() {
       <Title>{profile.display_name}</Title>
       {personYears(profile) ? <p className="mt-2 text-ink-soft">{personYears(profile)}</p> : null}
       {profile.bio ? <p className="mt-4 max-w-prose text-ink">{profile.bio}</p> : null}
-      <div className="mt-6">
-        <Button
-          type="button"
-          variant="ghost"
-          disabled={exporting || stories.length === 0}
-          onClick={() => void exportStories()}
-        >
-          {exporting ? 'Preparing…' : 'Export their stories'}
-        </Button>
-      </div>
+      {editing ? (
+        <form onSubmit={(event) => void save(event)} className="mt-6 space-y-3">
+          <PersonFields
+            draft={draft}
+            onChange={setDraft}
+            showEmail={!profile.user_id}
+            emailHint="Changing this sends a new sign-in link."
+          />
+          <ErrorText>{error}</ErrorText>
+          <PersonFormActions
+            saving={saving}
+            submitLabel="Save changes"
+            onCancel={() => setEditing(false)}
+          />
+        </form>
+      ) : (
+        <div className="mt-6 flex flex-wrap gap-2">
+          <Button type="button" variant="ghost" onClick={startEdit}>
+            Edit details
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            disabled={exporting || stories.length === 0}
+            onClick={() => void exportStories()}
+          >
+            {exporting ? 'Preparing…' : 'Export their stories'}
+          </Button>
+        </div>
+      )}
       <h2 className="mt-10 font-serif text-xl text-ink">Stories</h2>
       <div className="mt-4">
         {stories.length === 0 ? (
