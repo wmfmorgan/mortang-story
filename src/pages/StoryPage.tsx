@@ -1,0 +1,141 @@
+import { useEffect, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Comments } from '../components/social/Comments'
+import { Reactions } from '../components/social/Reactions'
+import { PerspectiveCard } from '../components/story/PerspectiveCard'
+import { StoryMedia } from '../components/story/StoryMedia'
+import { Button, ButtonLink, ErrorText, Page, Spinner, Title } from '../components/ui'
+import { useApp } from '../context/AppContext'
+import { fetchStoryDetail } from '../hooks/useStories'
+import { formatFuzzyDate, storyToFuzzyDate } from '../lib/dates'
+import { downloadStoryBook } from '../lib/pdf/download'
+import { supabase } from '../lib/supabase'
+import type { StoryDetail } from '../types/database'
+
+export function StoryPage() {
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const { person, family } = useApp()
+  const [story, setStory] = useState<StoryDetail | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [exporting, setExporting] = useState(false)
+
+  useEffect(() => {
+    if (!id) return
+    let active = true
+    setLoading(true)
+    fetchStoryDetail(id)
+      .then((detail) => {
+        if (!active) return
+        setStory(detail)
+        setLoading(false)
+      })
+      .catch((err: unknown) => {
+        if (!active) return
+        setError(err instanceof Error ? err.message : 'Could not load story')
+        setLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [id])
+
+  if (loading) return <Spinner />
+  if (!story) {
+    return (
+      <Page>
+        <Title>Story not found</Title>
+        <div className="mt-4">
+          <ErrorText>{error}</ErrorText>
+        </div>
+      </Page>
+    )
+  }
+
+  const detail = story
+  const hasOwn = detail.perspectives.some((item) => item.author_person_id === person.id)
+  const canDelete =
+    detail.created_by_person_id === person.id || person.role === 'admin'
+
+  async function exportStory() {
+    setExporting(true)
+    try {
+      await downloadStoryBook({
+        mode: 'story',
+        familyName: family.name,
+        story: detail,
+      })
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  async function remove() {
+    if (!confirm('Delete this story and every telling on it?')) return
+    const { error: deleteError } = await supabase.from('stories').delete().eq('id', detail.id)
+    if (deleteError) {
+      setError(deleteError.message)
+      return
+    }
+    navigate('/')
+  }
+
+  return (
+    <Page>
+      <p className="text-xs uppercase tracking-wider text-ink-soft">
+        {formatFuzzyDate(storyToFuzzyDate(detail))}
+        {detail.place_name ? ` · ${detail.place_name}` : ''}
+      </p>
+      <Title>{detail.title}</Title>
+      <p className="mt-3 text-ink-soft">
+        {detail.people.map((item) => (
+          <span key={item.id}>
+            <Link to={`/people/${item.id}`} className="hover:text-oxblood">
+              {item.display_name}
+            </Link>
+            {item.id !== detail.people[detail.people.length - 1]?.id ? ', ' : ''}
+          </span>
+        ))}
+      </p>
+      <div className="mt-6 flex flex-wrap gap-2">
+        <ButtonLink to={`/stories/${detail.id}/tell`} variant="ghost">
+          {hasOwn ? 'Edit your telling' : 'Add your perspective'}
+        </ButtonLink>
+        <Button type="button" variant="ghost" disabled={exporting} onClick={() => void exportStory()}>
+          {exporting ? 'Preparing…' : 'Export this story'}
+        </Button>
+        {canDelete ? (
+          <Button type="button" variant="danger" onClick={() => void remove()}>
+            Delete story
+          </Button>
+        ) : null}
+      </div>
+      <div className="mt-8">
+        <StoryMedia media={detail.media} />
+      </div>
+      <div className="mt-10 space-y-10">
+        {detail.perspectives.map((perspective) => (
+          <PerspectiveCard
+            key={perspective.id}
+            storyId={detail.id}
+            perspective={perspective}
+            current={person}
+          />
+        ))}
+      </div>
+      <section className="mt-12">
+        <h2 className="font-serif text-lg text-ink">On this story</h2>
+        <div className="mt-4 space-y-4">
+          <Reactions storyId={detail.id} personId={person.id} />
+          <Comments
+            storyId={detail.id}
+            personId={person.id}
+            isAdmin={person.role === 'admin'}
+          />
+        </div>
+      </section>
+      <ErrorText>{error}</ErrorText>
+    </Page>
+  )
+}
