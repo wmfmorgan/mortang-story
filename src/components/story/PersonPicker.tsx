@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useState } from 'react'
 import { createPerson } from '../../hooks/usePeople'
 import type { Person } from '../../types/database'
 import { Button, ErrorText, Field, Input } from '../ui'
@@ -24,8 +24,7 @@ export function PersonPicker({
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
-  async function addMissing(event: FormEvent) {
-    event.preventDefault()
+  async function addMissing() {
     if (!name.trim()) return
     setSaving(true)
     setError(null)
@@ -65,20 +64,31 @@ export function PersonPicker({
           )
         })}
       </div>
-      <form onSubmit={(event) => void addMissing(event)} className="flex gap-2">
+      <div className="flex gap-2">
         <Field label="Someone missing?">
           <Input
             value={name}
             onChange={(event) => setName(event.target.value)}
             placeholder="Add a name"
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault()
+                void addMissing()
+              }
+            }}
           />
         </Field>
         <div className="flex items-end">
-          <Button type="submit" variant="ghost" disabled={saving || !name.trim()}>
+          <Button
+            type="button"
+            variant="ghost"
+            disabled={saving || !name.trim()}
+            onClick={() => void addMissing()}
+          >
             Add
           </Button>
         </div>
-      </form>
+      </div>
       <ErrorText>{error}</ErrorText>
     </div>
   )
