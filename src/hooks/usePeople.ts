@@ -30,6 +30,30 @@ export function usePeople(familyId: string) {
   return { people, loading, error, reload }
 }
 
+export async function sendInvite(personId: string, email: string): Promise<Person> {
+  const cleaned = email.trim().toLowerCase()
+  if (!cleaned || !cleaned.includes('@')) {
+    throw new Error('Enter a valid email to send an invite')
+  }
+  const { data, error } = await supabase.rpc('invite_person', {
+    target_id: personId,
+    email: cleaned,
+  })
+  if (error || !data) {
+    throw new Error(error?.message ?? 'Could not save the invite')
+  }
+  const { error: mailError } = await supabase.auth.signInWithOtp({
+    email: cleaned,
+    options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+  })
+  if (mailError) {
+    throw new Error(
+      `Saved the email but the sign-in link did not send: ${mailError.message}`,
+    )
+  }
+  return data as Person
+}
+
 export async function createPerson(input: {
   family_id: string
   display_name: string
@@ -37,6 +61,7 @@ export async function createPerson(input: {
   death_year?: number | null
   bio?: string | null
   created_by: string
+  email?: string | null
 }): Promise<Person> {
   const { data, error } = await supabase
     .from('people')
@@ -51,7 +76,10 @@ export async function createPerson(input: {
     .select('*')
     .single()
   if (error || !data) throw new Error(error?.message ?? 'Could not add person')
-  return data as Person
+  const person = data as Person
+  const email = input.email?.trim()
+  if (!email) return person
+  return sendInvite(person.id, email)
 }
 
 export function personYears(person: Person): string | null {

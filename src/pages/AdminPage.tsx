@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { Button, ErrorText, Input, Page, Spinner, Subtitle, Title } from '../components/ui'
 import { useApp } from '../context/AppContext'
-import { personStatus, usePeople } from '../hooks/usePeople'
+import { personStatus, sendInvite, usePeople } from '../hooks/usePeople'
 import { supabase } from '../lib/supabase'
 import type { MemberRole, Person } from '../types/database'
 
@@ -20,16 +20,14 @@ export function AdminPage() {
     setSavingId(target.id)
     setFormError(null)
     const email = (drafts[target.id] ?? target.invite_email ?? '').trim()
-    const { error: rpcError } = await supabase.rpc('admin_set_invite', {
-      target_id: target.id,
-      email,
-    })
-    setSavingId(null)
-    if (rpcError) {
-      setFormError(rpcError.message)
-      return
+    try {
+      await sendInvite(target.id, email)
+      await reload()
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Could not send invite')
+    } finally {
+      setSavingId(null)
     }
-    await reload()
   }
 
   async function setRole(target: Person, role: MemberRole) {
@@ -51,8 +49,8 @@ export function AdminPage() {
     <Page>
       <Title>Admin</Title>
       <Subtitle>
-        Attach an email to a person, then ask them to sign in with that exact address. The
-        magic link will land them as that person.
+        Attach an email and we send a sign-in link immediately. They become that person
+        when they open it.
       </Subtitle>
       <ErrorText>{error}</ErrorText>
       <ErrorText>{formError}</ErrorText>
@@ -84,7 +82,7 @@ export function AdminPage() {
                 disabled={savingId === item.id}
                 onClick={() => void setInvite(item)}
               >
-                Save invite
+                Send invite
               </Button>
             </div>
             {item.user_id && item.id !== person.id ? (

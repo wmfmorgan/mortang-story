@@ -15,6 +15,7 @@ export function PeoplePage() {
   const { family, person } = useApp()
   const { people, loading, error, reload } = usePeople(family.id)
   const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
   const [birth, setBirth] = useState('')
   const [death, setDeath] = useState('')
   const [bio, setBio] = useState('')
@@ -34,8 +35,10 @@ export function PeoplePage() {
         death_year: death ? Number(death) : null,
         bio,
         created_by: person.id,
+        email,
       })
       setName('')
+      setEmail('')
       setBirth('')
       setDeath('')
       setBio('')
@@ -53,7 +56,7 @@ export function PeoplePage() {
     <Page>
       <Title>People</Title>
       <p className="mt-2 text-ink-soft">
-        Anyone can appear in a story. Only an admin can invite them to log in.
+        Anyone can appear in a story. Add an email and they get a sign-in link immediately.
       </p>
       <ul className="mt-8 divide-y divide-rule">
         {people.map((item) => (
@@ -73,6 +76,14 @@ export function PeoplePage() {
         <Field label="Name">
           <Input required value={name} onChange={(event) => setName(event.target.value)} />
         </Field>
+        <Field label="Email" hint="Optional. Leave blank for someone who will not log in.">
+          <Input
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="aunt@email"
+          />
+        </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Born (year)">
             <Input value={birth} onChange={(event) => setBirth(event.target.value)} />
@@ -87,7 +98,7 @@ export function PeoplePage() {
         <ErrorText>{error}</ErrorText>
         <ErrorText>{formError}</ErrorText>
         <Button type="submit" disabled={saving}>
-          {saving ? 'Adding…' : 'Add person'}
+          {saving ? 'Adding…' : email.trim() ? 'Add and invite' : 'Add person'}
         </Button>
       </form>
     </Page>
