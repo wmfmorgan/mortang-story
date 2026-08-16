@@ -497,3 +497,13 @@ create policy family_media_update on storage.objects
 create policy family_media_delete on storage.objects
   for delete to authenticated
   using (bucket_id = 'family-media' and public.current_person_id() is not null);
+
+grant usage on schema public to anon, authenticated;
+
+grant select, insert, update, delete on all tables in schema public to authenticated;
+grant usage, select on all sequences in schema public to authenticated;
+
+alter default privileges in schema public
+  grant select, insert, update, delete on tables to authenticated;
+alter default privileges in schema public
+  grant usage, select on sequences to authenticated;
