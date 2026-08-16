@@ -54,6 +54,8 @@ export function StoryPage() {
   }
 
   const detail = story
+  const original = detail.perspectives.find((item) => item.is_original)
+  const childPerspectives = detail.perspectives.filter((item) => !item.is_original)
   const hasOwn = detail.perspectives.some((item) => item.author_person_id === person.id)
   const canDelete =
     detail.created_by_person_id === person.id || person.role === 'admin'
@@ -114,15 +116,33 @@ export function StoryPage() {
       <div className="mt-8">
         <StoryMedia media={detail.media} />
       </div>
-      <div className="mt-10 space-y-10">
-        {detail.perspectives.map((perspective) => (
+      <div className="mt-10">
+        {original ? (
           <PerspectiveCard
-            key={perspective.id}
             storyId={detail.id}
-            perspective={perspective}
+            perspective={original}
             current={person}
           />
-        ))}
+        ) : null}
+        {childPerspectives.length > 0 ? (
+          <div className="relative mt-8 ml-2 border-l-2 border-oxblood/30 pl-6 sm:ml-4 sm:pl-8">
+            <p className="mb-6 text-xs font-medium uppercase tracking-wider text-ink-soft">
+              Perspectives
+            </p>
+            <div className="space-y-10">
+              {childPerspectives.map((perspective) => (
+                <div key={perspective.id} className="relative">
+                  <span className="absolute top-2 -left-[1.9rem] h-px w-5 bg-oxblood/30 sm:-left-[2.15rem] sm:w-6" />
+                  <PerspectiveCard
+                    storyId={detail.id}
+                    perspective={perspective}
+                    current={person}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </div>
       <section className="mt-12">
         <h2 className="font-serif text-lg text-ink">On this story</h2>

@@ -16,6 +16,7 @@ export function Comments({ storyId, perspectiveId = null, personId, isAdmin }: P
   const [comments, setComments] = useState<Row[]>([])
   const [body, setBody] = useState('')
   const [saving, setSaving] = useState(false)
+  const [composing, setComposing] = useState(false)
 
   async function load() {
     let query = supabase
@@ -46,6 +47,7 @@ export function Comments({ storyId, perspectiveId = null, personId, isAdmin }: P
     })
     setBody('')
     setSaving(false)
+    setComposing(false)
     await load()
   }
 
@@ -73,16 +75,35 @@ export function Comments({ storyId, perspectiveId = null, personId, isAdmin }: P
           <p className="mt-1 whitespace-pre-wrap text-sm text-ink-soft">{comment.body}</p>
         </div>
       ))}
-      <form onSubmit={(event) => void submit(event)} className="space-y-2">
-        <Textarea
-          value={body}
-          onChange={(event) => setBody(event.target.value)}
-          placeholder="A short comment — not a telling."
-        />
-        <Button type="submit" variant="ghost" disabled={saving || !body.trim()}>
-          Comment
+      {composing ? (
+        <form onSubmit={(event) => void submit(event)} className="space-y-2">
+          <Textarea
+            value={body}
+            onChange={(event) => setBody(event.target.value)}
+            placeholder="A short comment — not a telling."
+            autoFocus
+          />
+          <div className="flex flex-wrap gap-2">
+            <Button type="submit" variant="ghost" disabled={saving || !body.trim()}>
+              {saving ? 'Saving…' : 'Post comment'}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => {
+                setComposing(false)
+                setBody('')
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </form>
+      ) : (
+        <Button type="button" variant="ghost" onClick={() => setComposing(true)}>
+          Add comment
         </Button>
-      </form>
+      )}
     </div>
   )
 }
