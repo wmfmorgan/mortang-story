@@ -9,11 +9,13 @@ export function StoryNode({
   side,
   expanded,
   onExpand,
+  density = 'full',
 }: {
   story: StoryListItem
   side: 'left' | 'right'
   expanded: boolean
   onExpand: () => void
+  density?: 'full' | 'compact' | 'minimal'
 }) {
   const navigate = useNavigate()
   const [thumbs, setThumbs] = useState<string[]>([])
@@ -53,13 +55,21 @@ export function StoryNode({
       <Pointer side="left" className={side === 'right' ? '' : 'md:hidden'} />
       {side === 'left' ? <Pointer side="right" className="hidden md:block" /> : null}
       <div className="flex overflow-hidden rounded-xl bg-[#fffdf8] shadow-[0_8px_22px_rgba(43,36,29,0.14)] ring-1 ring-rule/70 transition hover:shadow-[0_12px_28px_rgba(43,36,29,0.18)]">
-      <div className="min-w-0 flex-1 px-4 py-3">
-        <h2 className="font-serif text-lg font-semibold leading-snug text-ink">{story.title}</h2>
-        <p className="mt-1 text-sm text-ink-soft">
-          {names || 'Family'}
-          {story.place_name ? ` · ${story.place_name}` : ''} · {tellings}
-        </p>
-        {thumbs.length > 0 ? (
+      <div className={`min-w-0 flex-1 ${density === 'minimal' ? 'px-3 py-2' : 'px-4 py-3'}`}>
+        <h2
+          className={`font-serif font-semibold leading-snug text-ink ${
+            density === 'minimal' ? 'text-base' : 'text-lg'
+          }`}
+        >
+          {story.title}
+        </h2>
+        {density !== 'minimal' ? (
+          <p className="mt-1 text-sm text-ink-soft">
+            {names || 'Family'}
+            {story.place_name ? ` · ${story.place_name}` : ''} · {tellings}
+          </p>
+        ) : null}
+        {density === 'full' && thumbs.length > 0 ? (
           <div className="mt-3 flex gap-1.5">
             {thumbs.map((url) => (
               <img
@@ -83,16 +93,24 @@ export function StoryNode({
           </div>
         ) : null}
       </div>
-      <div className="flex w-[4.5rem] shrink-0 flex-col items-center justify-center border-l border-rule/70 px-2 py-3 text-center">
-        {parts.eyebrow ? (
+      <div
+        className={`flex shrink-0 flex-col items-center justify-center border-l border-rule/70 text-center ${
+          density === 'minimal' ? 'w-14 px-1 py-2' : 'w-[4.5rem] px-2 py-3'
+        }`}
+      >
+        {density !== 'minimal' && parts.eyebrow ? (
           <span className="text-[0.7rem] font-medium tracking-wide text-ink-soft">
             {parts.eyebrow}
           </span>
         ) : null}
-        {parts.day ? (
+        {density !== 'minimal' && parts.day ? (
           <span className="font-serif text-3xl leading-none font-semibold text-ink">{parts.day}</span>
         ) : null}
-        <span className={`text-xs text-ink ${parts.day ? '' : 'font-serif text-xl font-semibold'}`}>
+        <span
+          className={`text-ink ${
+            density === 'minimal' || !parts.day ? 'font-serif text-lg font-semibold' : 'text-xs'
+          }`}
+        >
           {parts.year}
         </span>
       </div>
