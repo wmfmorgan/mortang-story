@@ -24,24 +24,24 @@ export function PerspectiveCard({ storyId, perspective, current }: Props) {
           </Link>
         ) : null}
       </div>
-      <article className="rounded-xl border border-rule px-4 py-3">
+      <article className="relative rounded-xl border border-rule px-4 pb-5 pt-3">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1">
           <p className="col-start-1 row-start-1 row-span-2 whitespace-pre-wrap font-serif text-base leading-relaxed text-ink">
             {perspective.body}
           </p>
-          <div className="col-start-2 row-start-1 flex justify-end">
-            <Reactions
-              storyId={storyId}
-              perspectiveId={perspective.id}
-              personId={current.id}
-            />
-          </div>
           <Comments
             storyId={storyId}
             perspectiveId={perspective.id}
             personId={current.id}
             isAdmin={isAdmin}
             split
+          />
+        </div>
+        <div className="absolute right-3 bottom-0 translate-y-1/2 bg-paper px-1">
+          <Reactions
+            storyId={storyId}
+            perspectiveId={perspective.id}
+            personId={current.id}
           />
         </div>
       </article>

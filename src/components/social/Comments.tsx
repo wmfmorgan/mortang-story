@@ -76,7 +76,7 @@ export function Comments({
       <button
         type="button"
         className={`text-xs tracking-wide text-ink-soft hover:text-ink ${
-          split ? 'col-start-2 row-start-2 justify-self-end text-right' : ''
+          split ? 'col-start-2 row-start-1 justify-self-end text-right' : ''
         }`}
         onClick={() => {
           setOpen((value) => !value)
