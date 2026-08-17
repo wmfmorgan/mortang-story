@@ -48,10 +48,11 @@ export function StoryNode({
       type="button"
       onClick={open}
       aria-expanded={expanded}
-      className="relative flex w-full overflow-visible bg-[#fffdf8] text-left shadow-sm ring-1 ring-rule/80 transition hover:shadow-md"
+      className="relative w-full overflow-visible text-left"
     >
       <Pointer side="left" className={side === 'right' ? '' : 'md:hidden'} />
       {side === 'left' ? <Pointer side="right" className="hidden md:block" /> : null}
+      <div className="flex overflow-hidden rounded-xl bg-[#fffdf8] shadow-[0_8px_22px_rgba(43,36,29,0.14)] ring-1 ring-rule/70 transition hover:shadow-[0_12px_28px_rgba(43,36,29,0.18)]">
       <div className="min-w-0 flex-1 px-4 py-3">
         <h2 className="font-serif text-lg font-semibold leading-snug text-ink">{story.title}</h2>
         <p className="mt-1 text-sm text-ink-soft">
@@ -94,6 +95,7 @@ export function StoryNode({
         <span className={`text-xs text-ink ${parts.day ? '' : 'font-serif text-xl font-semibold'}`}>
           {parts.year}
         </span>
+      </div>
       </div>
     </button>
   )
