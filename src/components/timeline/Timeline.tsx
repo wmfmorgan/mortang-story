@@ -25,14 +25,19 @@ export function Timeline({
   const [openGroups, setOpenGroups] = useState<string[]>([])
 
   useEffect(() => {
-    setOpenGroups([])
-  }, [grouping])
+    if (grouping === 'story') {
+      setOpenGroups([])
+      return
+    }
+    const keys = [...new Set(stories.map((story) => groupKey(story, grouping)))]
+    setOpenGroups(keys)
+  }, [grouping, stories])
 
   return (
-    <ol className="relative">
+    <div className="relative flex flex-col">
       <span
         aria-hidden
-        className="absolute top-0 bottom-0 left-3 w-px bg-rule md:left-1/2 md:-translate-x-1/2"
+        className="pointer-events-none absolute top-0 bottom-0 left-3 w-px bg-rule md:left-1/2 md:-translate-x-1/2"
       />
       {stories.map((story, index) => {
         const side: 'left' | 'right' = index % 2 === 0 ? 'left' : 'right'
@@ -47,16 +52,16 @@ export function Timeline({
         return (
           <Fragment key={story.id}>
             {showYear ? (
-              <li className="relative grid grid-cols-[1.5rem_minmax(0,1fr)] py-1 md:grid-cols-[minmax(0,1fr)_1.5rem_minmax(0,1fr)]">
+              <div className="relative grid grid-cols-[1.5rem_minmax(0,1fr)] py-1 md:grid-cols-[minmax(0,1fr)_1.5rem_minmax(0,1fr)]">
                 <span className="relative z-10 col-start-1 flex justify-center md:col-start-2">
                   <span className="bg-paper px-1.5 font-serif text-sm font-semibold tracking-wide text-oxblood">
                     {year}
                   </span>
                 </span>
-              </li>
+              </div>
             ) : null}
             {showGroup ? (
-              <li className="relative grid grid-cols-[1.5rem_minmax(0,1fr)] py-1 md:grid-cols-[minmax(0,1fr)_1.5rem_minmax(0,1fr)]">
+              <div className="relative grid grid-cols-[1.5rem_minmax(0,1fr)] py-1 md:grid-cols-[minmax(0,1fr)_1.5rem_minmax(0,1fr)]">
                 <span className="relative z-10 col-start-1 flex justify-center md:col-start-2">
                   <button
                     type="button"
@@ -76,10 +81,10 @@ export function Timeline({
                     </span>
                   </button>
                 </span>
-              </li>
+              </div>
             ) : null}
             {groupOpen ? (
-            <li className="relative grid grid-cols-[1.5rem_minmax(0,1fr)] items-center py-4 md:grid-cols-[minmax(0,1fr)_1.5rem_minmax(0,1fr)]">
+            <div className="relative grid grid-cols-[1.5rem_minmax(0,1fr)] items-center py-4 md:grid-cols-[minmax(0,1fr)_1.5rem_minmax(0,1fr)]">
               <div className="relative col-start-1 row-start-1 md:col-start-2">
                 <span className="absolute top-8 left-1/2 h-3 w-3 -translate-x-1/2 rounded-full bg-oxblood ring-4 ring-paper" />
               </div>
@@ -98,11 +103,11 @@ export function Timeline({
                   density={density}
                 />
               </div>
-            </li>
+            </div>
             ) : null}
           </Fragment>
         )
       })}
-    </ol>
+    </div>
   )
 }
