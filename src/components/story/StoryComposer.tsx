@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import type { FuzzyDate } from '../../lib/dates'
-import { FAMILY_MEDIA_BUCKET, supabase } from '../../lib/supabase'
+import { attachStoryMedia } from '../../lib/storyMedia'
+import { supabase } from '../../lib/supabase'
 import type { Person } from '../../types/database'
 import { Button, ErrorText, Field, Input, Textarea } from '../ui'
 import { FuzzyDateInput } from './FuzzyDateInput'
@@ -79,40 +80,13 @@ export function StoryComposer({
       })
       if (tellingError) throw new Error(tellingError.message)
 
-      const mediaRows: Record<string, unknown>[] = []
-      for (const [index, file] of files.entries()) {
-        const safeName = file.name.replace(/[^\w.\-]+/g, '_')
-        const path = `${familyId}/${story.id}/${index}-${safeName}`
-        const { error: uploadError } = await supabase.storage
-          .from(FAMILY_MEDIA_BUCKET)
-          .upload(path, file, { upsert: false })
-        if (uploadError) throw new Error(uploadError.message)
-        mediaRows.push({
-          family_id: familyId,
-          story_id: story.id,
-          kind: 'photo',
-          storage_path: path,
-          sort_order: index,
-          uploaded_by: author.id,
-        })
-      }
-      links
-        .filter((link) => link.url.trim())
-        .forEach((link, index) => {
-          mediaRows.push({
-            family_id: familyId,
-            story_id: story.id,
-            kind: 'link',
-            url: link.url.trim(),
-            title: link.title.trim() || null,
-            sort_order: files.length + index,
-            uploaded_by: author.id,
-          })
-        })
-      if (mediaRows.length > 0) {
-        const { error: mediaError } = await supabase.from('media').insert(mediaRows)
-        if (mediaError) throw new Error(mediaError.message)
-      }
+      await attachStoryMedia({
+        familyId,
+        storyId: story.id,
+        uploadedBy: author.id,
+        files,
+        links,
+      })
 
       onCreated(story.id)
     } catch (err) {
