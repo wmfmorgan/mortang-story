@@ -17,7 +17,7 @@ export function PerspectiveCard({ storyId, perspective, current }: Props) {
   return (
     <div>
       <div className="mb-1.5 flex items-baseline justify-between gap-3 px-1">
-        <p className="text-xs font-medium uppercase tracking-wider text-ink-soft">{label}</p>
+        <p className="text-sm font-medium tracking-wide text-ink-soft sm:text-base">{label}</p>
         {own ? (
           <Link to={`/stories/${storyId}/tell`} className="text-xs text-oxblood hover:underline">
             Edit
