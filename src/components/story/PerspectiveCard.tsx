@@ -13,24 +13,20 @@ export function PerspectiveCard({ storyId, perspective, current }: Props) {
   const own = perspective.author_person_id === current.id
   const isAdmin = current.role === 'admin'
   const label = perspective.is_original
-    ? `Original Story by ${perspective.author.display_name}`
+    ? `Original story by ${perspective.author.display_name}`
     : `${perspective.author.display_name}’s perspective`
 
   return (
     <article className={perspective.is_original ? '' : 'relative'}>
       <div className="flex items-baseline justify-between gap-3">
-        <h3
-          className={`font-serif text-ink ${perspective.is_original ? 'text-xl' : 'text-lg'}`}
-        >
-          {label}
-        </h3>
+        <p className="text-xs font-medium uppercase tracking-wider text-ink-soft">{label}</p>
         {own ? (
-          <Link to={`/stories/${storyId}/tell`} className="text-sm text-oxblood hover:underline">
+          <Link to={`/stories/${storyId}/tell`} className="text-xs text-oxblood hover:underline">
             Edit
           </Link>
         ) : null}
       </div>
-      <p className="mt-4 whitespace-pre-wrap font-serif text-lg leading-relaxed text-ink">
+      <p className="mt-3 whitespace-pre-wrap font-serif text-2xl font-medium leading-snug text-ink sm:text-[1.7rem] sm:leading-[1.35]">
         {perspective.body}
       </p>
       <div className="mt-5 space-y-2">
