@@ -18,12 +18,16 @@ type StoryDetailRow = Story & {
 
 function toListItem(row: StoryRow): StoryListItem {
   const media = row.media ?? []
-  const firstPhoto = media.find((item) => item.kind === 'photo' && item.storage_path)
+  const photoPaths = media
+    .filter((item) => item.kind === 'photo' && item.storage_path)
+    .map((item) => item.storage_path as string)
+    .slice(0, 3)
   return {
     ...row,
     people: (row.story_people ?? []).map((link) => link.person).filter(Boolean),
     perspective_count: row.perspectives?.length ?? 0,
-    first_photo_path: firstPhoto?.storage_path ?? null,
+    first_photo_path: photoPaths[0] ?? null,
+    photo_paths: photoPaths,
   }
 }
 

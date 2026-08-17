@@ -46,6 +46,43 @@ export function sortKey(d: FuzzyDate): number {
   return d.year * 10000 + month * 100 + day
 }
 
+const MONTHS_SHORT = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+] as const
+
+export function dateParts(d: FuzzyDate): {
+  eyebrow: string
+  day: string
+  year: string
+} {
+  const year = d.circa ? `c. ${d.year}` : String(d.year)
+  if (d.season) {
+    return { eyebrow: SEASON_LABEL[d.season], day: '', year }
+  }
+  if (d.precision === 'day' && d.month && d.day) {
+    return {
+      eyebrow: MONTHS_SHORT[d.month - 1],
+      day: String(d.day).padStart(2, '0'),
+      year,
+    }
+  }
+  if ((d.precision === 'month' || d.month) && d.month) {
+    return { eyebrow: MONTHS_SHORT[d.month - 1], day: '', year }
+  }
+  return { eyebrow: '', day: '', year }
+}
+
 export function formatFuzzyDate(d: FuzzyDate): string {
   const circa = d.circa ? 'c. ' : ''
   if (d.season) {

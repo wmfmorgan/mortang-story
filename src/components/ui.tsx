@@ -9,12 +9,15 @@ import { Link } from 'react-router-dom'
 export function Page({
   children,
   narrow = false,
+  wide = false,
 }: {
   children: ReactNode
   narrow?: boolean
+  wide?: boolean
 }) {
+  const width = narrow ? 'max-w-xl' : wide ? 'max-w-5xl' : 'max-w-3xl'
   return (
-    <div className={`mx-auto w-full px-4 py-8 sm:px-6 ${narrow ? 'max-w-xl' : 'max-w-3xl'}`}>
+    <div className={`mx-auto w-full px-4 py-8 sm:px-6 ${width}`}>
       {children}
     </div>
   )

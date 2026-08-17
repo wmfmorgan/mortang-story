@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatFuzzyDate, sortKey, type FuzzyDate } from './dates'
+import { dateParts, formatFuzzyDate, sortKey, type FuzzyDate } from './dates'
 
 describe('formatFuzzyDate', () => {
   it('formats a year', () => {
@@ -39,6 +39,28 @@ describe('formatFuzzyDate', () => {
         precision: 'year',
       }),
     ).toBe('c. Summer 1987')
+  })
+})
+
+describe('dateParts', () => {
+  it('splits an exact day', () => {
+    expect(
+      dateParts({ year: 2020, month: 10, day: 1, precision: 'day' }),
+    ).toEqual({ eyebrow: 'Oct', day: '01', year: '2020' })
+  })
+
+  it('uses season as the eyebrow', () => {
+    expect(
+      dateParts({ year: 1987, season: 'summer', precision: 'year' }),
+    ).toEqual({ eyebrow: 'Summer', day: '', year: '1987' })
+  })
+
+  it('keeps circa on the year', () => {
+    expect(dateParts({ year: 1962, circa: true, precision: 'year' })).toEqual({
+      eyebrow: '',
+      day: '',
+      year: 'c. 1962',
+    })
   })
 })
 

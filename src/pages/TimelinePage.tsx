@@ -32,7 +32,7 @@ export function TimelinePage() {
   if (loading) return <Spinner />
 
   return (
-    <Page>
+    <Page wide>
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <Title>{family.name}</Title>
