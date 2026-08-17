@@ -53,11 +53,11 @@ export function Reactions({ storyId, perspectiveId = null, personId }: Props) {
   })).filter((row) => row.count > 0)
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center justify-end gap-1">
       <button
         type="button"
         onClick={() => void toggle(LIKE)}
-        className={`rounded-full border px-3 py-1 text-sm ${
+        className={`rounded-full border px-2 py-0.5 text-xs ${
           liked ? 'border-oxblood bg-oxblood/10' : 'border-rule hover:bg-paper-dark'
         }`}
       >
@@ -68,7 +68,7 @@ export function Reactions({ storyId, perspectiveId = null, personId }: Props) {
           key={row.emoji}
           type="button"
           onClick={() => void toggle(row.emoji)}
-          className="rounded-full border border-rule px-3 py-1 text-sm hover:bg-paper-dark"
+          className="rounded-full border border-rule px-2 py-0.5 text-xs hover:bg-paper-dark"
         >
           {row.emoji} {row.count}
         </button>
@@ -77,7 +77,7 @@ export function Reactions({ storyId, perspectiveId = null, personId }: Props) {
         <button
           type="button"
           onClick={() => setOpen((value) => !value)}
-          className="rounded-full border border-rule px-3 py-1 text-sm text-ink-soft hover:bg-paper-dark"
+          className="rounded-full border border-rule px-2 py-0.5 text-xs text-ink-soft hover:bg-paper-dark"
         >
           +
         </button>

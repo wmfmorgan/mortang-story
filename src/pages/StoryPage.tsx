@@ -116,7 +116,7 @@ export function StoryPage() {
       <div className="mt-8">
         <StoryMedia media={detail.media} />
       </div>
-      <div className="mt-10">
+      <div className="mt-6 space-y-2">
         {original ? (
           <PerspectiveCard
             storyId={detail.id}
@@ -125,22 +125,17 @@ export function StoryPage() {
           />
         ) : null}
         {childPerspectives.length > 0 ? (
-          <div className="relative mt-8 ml-2 border-l-2 border-oxblood/30 pl-6 sm:ml-4 sm:pl-8">
-            <p className="mb-6 text-xs font-medium uppercase tracking-wider text-ink-soft">
-              Perspectives
-            </p>
-            <div className="space-y-10">
-              {childPerspectives.map((perspective) => (
-                <div key={perspective.id} className="relative">
-                  <span className="absolute top-2 -left-[1.9rem] h-px w-5 bg-oxblood/30 sm:-left-[2.15rem] sm:w-6" />
-                  <PerspectiveCard
-                    storyId={detail.id}
-                    perspective={perspective}
-                    current={person}
-                  />
-                </div>
-              ))}
-            </div>
+          <div className="relative ml-3 space-y-2 border-l-2 border-oxblood/30 pl-3 sm:ml-5 sm:pl-4">
+            {childPerspectives.map((perspective) => (
+              <div key={perspective.id} className="relative">
+                <span className="absolute top-4 -left-[0.95rem] h-px w-3 bg-oxblood/30 sm:-left-[1.15rem] sm:w-4" />
+                <PerspectiveCard
+                  storyId={detail.id}
+                  perspective={perspective}
+                  current={person}
+                />
+              </div>
+            ))}
           </div>
         ) : null}
       </div>

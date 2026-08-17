@@ -17,7 +17,7 @@ export function PerspectiveCard({ storyId, perspective, current }: Props) {
     : `${perspective.author.display_name}’s perspective`
 
   return (
-    <article className={perspective.is_original ? '' : 'relative'}>
+    <article className="rounded-xl border border-rule px-4 py-3">
       <div className="flex items-baseline justify-between gap-3">
         <p className="text-xs font-medium uppercase tracking-wider text-ink-soft">{label}</p>
         {own ? (
@@ -26,20 +26,23 @@ export function PerspectiveCard({ storyId, perspective, current }: Props) {
           </Link>
         ) : null}
       </div>
-      <p className="mt-3 whitespace-pre-wrap font-serif text-2xl font-medium leading-snug text-ink sm:text-[1.7rem] sm:leading-[1.35]">
-        {perspective.body}
-      </p>
-      <div className="mt-5 space-y-2">
-        <Reactions
-          storyId={storyId}
-          perspectiveId={perspective.id}
-          personId={current.id}
-        />
+      <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1">
+        <p className="col-start-1 row-start-1 row-span-2 whitespace-pre-wrap font-serif text-base leading-relaxed text-ink">
+          {perspective.body}
+        </p>
+        <div className="col-start-2 row-start-1 flex justify-end">
+          <Reactions
+            storyId={storyId}
+            perspectiveId={perspective.id}
+            personId={current.id}
+          />
+        </div>
         <Comments
           storyId={storyId}
           perspectiveId={perspective.id}
           personId={current.id}
           isAdmin={isAdmin}
+          split
         />
       </div>
     </article>

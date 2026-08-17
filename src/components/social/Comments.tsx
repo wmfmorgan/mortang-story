@@ -11,6 +11,7 @@ type Props = {
   personId: string
   isAdmin: boolean
   label?: string
+  split?: boolean
 }
 
 export function Comments({
@@ -19,6 +20,7 @@ export function Comments({
   personId,
   isAdmin,
   label,
+  split = false,
 }: Props) {
   const [comments, setComments] = useState<Row[]>([])
   const [body, setBody] = useState('')
@@ -70,10 +72,12 @@ export function Comments({
     (count === 0 ? 'Comments' : count === 1 ? '1 comment' : `${count} comments`)
 
   return (
-    <div>
+    <div className={split ? 'contents' : ''}>
       <button
         type="button"
-        className="text-xs tracking-wide text-ink-soft hover:text-ink"
+        className={`text-xs tracking-wide text-ink-soft hover:text-ink ${
+          split ? 'col-start-2 row-start-2 justify-self-end text-right' : ''
+        }`}
         onClick={() => {
           setOpen((value) => !value)
           if (open) setComposing(false)
@@ -83,7 +87,13 @@ export function Comments({
         {toggleLabel}
       </button>
       {open ? (
-        <div className="mt-3 space-y-3 border-l border-rule pl-3">
+        <div
+          className={`space-y-3 ${
+            split
+              ? 'col-span-2 mt-2 border-t border-rule/70 pt-3'
+              : 'mt-3 border-l border-rule pl-3'
+          }`}
+        >
           {count === 0 && !composing ? (
             <p className="text-xs text-ink-soft">No comments yet.</p>
           ) : null}
