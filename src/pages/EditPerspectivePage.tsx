@@ -1,12 +1,14 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { FuzzyDateInput } from '../components/story/FuzzyDateInput'
+import { LocationPicker } from '../components/story/LocationPicker'
 import { MediaFields, type LinkDraft } from '../components/story/MediaFields'
 import { PersonPicker } from '../components/story/PersonPicker'
-import { LocationPicker } from '../components/story/LocationPicker'
 import { Button, ErrorText, Field, Page, Spinner, Subtitle, Textarea, Title } from '../components/ui'
 import { useApp } from '../context/AppContext'
 import { usePeople } from '../hooks/usePeople'
 import { fetchStoryDetail } from '../hooks/useStories'
+import { storyToFuzzyDate, type FuzzyDate } from '../lib/dates'
 import type { PlaceValue } from '../lib/geocode'
 import { attachStoryMedia, syncStoryPeople } from '../lib/storyMedia'
 import { supabase } from '../lib/supabase'
@@ -21,6 +23,10 @@ export function EditPerspectivePage() {
   const [existing, setExisting] = useState<Perspective | null>(null)
   const [body, setBody] = useState('')
   const [place, setPlace] = useState<PlaceValue | null>(null)
+  const [date, setDate] = useState<FuzzyDate>({
+    year: new Date().getFullYear(),
+    precision: 'year',
+  })
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [files, setFiles] = useState<File[]>([])
   const [links, setLinks] = useState<LinkDraft[]>([])
@@ -36,6 +42,7 @@ export function EditPerspectivePage() {
         const mine = detail?.perspectives.find((item) => item.author_person_id === person.id)
         setExisting(mine ?? null)
         setBody(mine?.body ?? '')
+        if (detail) setDate(storyToFuzzyDate(detail))
         setPlace(
           detail?.place_name && detail.place_lat != null && detail.place_lng != null
             ? { name: detail.place_name, lat: detail.place_lat, lng: detail.place_lng }
@@ -78,6 +85,10 @@ export function EditPerspectivePage() {
       setError('Tag at least one person who was there.')
       return
     }
+    if (!date.year) {
+      setError('The story needs a year.')
+      return
+    }
     setSaving(true)
     setError(null)
     try {
@@ -99,25 +110,22 @@ export function EditPerspectivePage() {
 
       await syncStoryPeople(currentStory.id, selectedIds)
 
-      const nextName = place?.name ?? null
-      const nextLat = place?.lat ?? null
-      const nextLng = place?.lng ?? null
-      if (
-        nextName !== (currentStory.place_name ?? null) ||
-        nextLat !== (currentStory.place_lat ?? null) ||
-        nextLng !== (currentStory.place_lng ?? null)
-      ) {
-        const { error: placeError } = await supabase
-          .from('stories')
-          .update({
-            place_name: nextName,
-            place_lat: nextLat,
-            place_lng: nextLng,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', currentStory.id)
-        if (placeError) throw new Error(placeError.message)
-      }
+      const { error: storyError } = await supabase
+        .from('stories')
+        .update({
+          occurred_year: date.year,
+          occurred_month: date.month ?? null,
+          occurred_day: date.day ?? null,
+          precision: date.precision,
+          circa: Boolean(date.circa),
+          season: date.season ?? null,
+          place_name: place?.name ?? null,
+          place_lat: place?.lat ?? null,
+          place_lng: place?.lng ?? null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', currentStory.id)
+      if (storyError) throw new Error(storyError.message)
 
       await attachStoryMedia({
         familyId: family.id,
@@ -154,6 +162,9 @@ export function EditPerspectivePage() {
       <Title>{existing ? 'Edit your telling' : 'Add your perspective'}</Title>
       <Subtitle>{currentStory.title}</Subtitle>
       <form onSubmit={(event) => void submit(event)} className="mt-8 space-y-6">
+        <Field label="When">
+          <FuzzyDateInput value={date} onChange={setDate} />
+        </Field>
         <Field label="Your telling">
           <Textarea
             value={body}
