@@ -12,7 +12,6 @@ import {
   uniquePeople,
   uniquePlaces,
   yearRange,
-  type DateGrouping,
   type Density,
   type TimelineFilters,
 } from '../lib/timelineFilters'
@@ -33,7 +32,6 @@ export function TimelinePage() {
   const [newestFirst, setNewestFirst] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [density, setDensity] = useState<Density>(readDensity)
-  const [grouping, setGrouping] = useState<DateGrouping>('story')
   const [filters, setFilters] = useState<TimelineFilters>(emptyFilters)
 
   useEffect(() => {
@@ -108,8 +106,6 @@ export function TimelinePage() {
           <TimelineToolbar
             density={density}
             onDensity={setDensity}
-            grouping={grouping}
-            onGrouping={setGrouping}
             filters={filters}
             onFilters={setFilters}
             people={people}
@@ -125,7 +121,7 @@ export function TimelinePage() {
               body="Clear a filter or widen the years to see stories again."
             />
           ) : (
-            <Timeline stories={filtered} density={density} grouping={grouping} />
+            <Timeline stories={filtered} density={density} />
           )}
         </>
       )}

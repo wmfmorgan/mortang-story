@@ -1,8 +1,8 @@
+import { useState } from 'react'
 import {
   decadeLabel,
   emptyFilters,
   filtersActive,
-  type DateGrouping,
   type Density,
   type TimelineFilters,
 } from '../../lib/timelineFilters'
@@ -11,8 +11,6 @@ import { Input } from '../ui'
 type Props = {
   density: Density
   onDensity: (value: Density) => void
-  grouping: DateGrouping
-  onGrouping: (value: DateGrouping) => void
   filters: TimelineFilters
   onFilters: (value: TimelineFilters) => void
   people: { id: string; name: string }[]
@@ -33,8 +31,6 @@ const chipOn =
 export function TimelineToolbar({
   density,
   onDensity,
-  grouping,
-  onGrouping,
   filters,
   onFilters,
   people,
@@ -44,6 +40,7 @@ export function TimelineToolbar({
   shown,
   total,
 }: Props) {
+  const [open, setOpen] = useState(false)
   const active = filtersActive(filters)
 
   function togglePerson(id: string) {
@@ -61,8 +58,8 @@ export function TimelineToolbar({
   }
 
   return (
-    <div className="mb-8 space-y-4 rounded-xl border border-rule bg-[#fffdf8]/60 px-4 py-4">
-      <div className="flex flex-wrap items-center gap-4">
+    <div className="mb-8 rounded-xl border border-rule bg-[#fffdf8]/60 px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <Segment
           label="Cards"
           value={density}
@@ -73,17 +70,33 @@ export function TimelineToolbar({
           ]}
           onChange={onDensity}
         />
-        <Segment
-          label="Group"
-          value={grouping}
-          options={[
-            { id: 'story', label: 'Stories' },
-            { id: 'year', label: 'By year' },
-            { id: 'decade', label: 'By decade' },
-          ]}
-          onChange={onGrouping}
-        />
+        <div className="flex flex-wrap items-center gap-3 text-sm text-ink-soft">
+          <span>
+            {shown === total
+              ? `${total} stor${total === 1 ? 'y' : 'ies'}`
+              : `${shown} of ${total} stories`}
+          </span>
+          {active ? (
+            <button
+              type="button"
+              className="text-oxblood hover:underline"
+              onClick={() => onFilters(emptyFilters)}
+            >
+              Clear filters
+            </button>
+          ) : null}
+          <button
+            type="button"
+            className="text-ink hover:underline"
+            aria-expanded={open}
+            onClick={() => setOpen((value) => !value)}
+          >
+            {open ? 'Hide filters' : active ? 'Show filters · on' : 'Show filters'}
+          </button>
+        </div>
       </div>
+      {open ? (
+      <div className="mt-4 space-y-4 border-t border-rule/70 pt-4">
       <div>
         <p className="mb-1 text-xs font-medium uppercase tracking-wider text-ink-soft">Timeframe</p>
         <div className="flex flex-wrap items-center gap-2">
@@ -177,22 +190,8 @@ export function TimelineToolbar({
           onChange={(event) => onFilters({ ...filters, query: event.target.value })}
         />
       </label>
-      <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-ink-soft">
-        <span>
-          {shown === total
-            ? `${total} stor${total === 1 ? 'y' : 'ies'}`
-            : `${shown} of ${total} stories`}
-        </span>
-        {active ? (
-          <button
-            type="button"
-            className="text-oxblood hover:underline"
-            onClick={() => onFilters(emptyFilters)}
-          >
-            Clear filters
-          </button>
-        ) : null}
       </div>
+      ) : null}
     </div>
   )
 }
