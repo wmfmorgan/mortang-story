@@ -110,9 +110,7 @@ function StoryBlock({ story }: { story: PdfStory }) {
       {story.perspectives.map((perspective) => (
         <View key={perspective.id}>
           <Text style={styles.tellingLabel}>
-            {perspective.is_original
-              ? `Original Story by ${perspective.author.display_name}`
-              : `${perspective.author.display_name}’s perspective`}
+            {`As Remembered by ${perspective.author.display_name}`}
           </Text>
           <Text style={styles.body}>{perspective.body}</Text>
         </View>
