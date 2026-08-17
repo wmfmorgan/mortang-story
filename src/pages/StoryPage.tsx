@@ -139,14 +139,16 @@ export function StoryPage() {
           </div>
         ) : null}
       </div>
-      <footer className="mt-14 space-y-2 border-t border-rule/70 pt-4">
-        <Reactions storyId={detail.id} personId={person.id} />
-        <Comments
-          storyId={detail.id}
-          personId={person.id}
-          isAdmin={person.role === 'admin'}
-          label="Comments on this event"
-        />
+      <footer className="relative mt-14 border-t border-rule/70 pt-5">
+        <p className="text-xs text-ink-soft">This event</p>
+        <div className="absolute right-3 top-0 flex -translate-y-1/2 items-center gap-1 bg-paper px-1">
+          <Reactions storyId={detail.id} personId={person.id} />
+          <Comments
+            storyId={detail.id}
+            personId={person.id}
+            isAdmin={person.role === 'admin'}
+          />
+        </div>
       </footer>
       <ErrorText>{error}</ErrorText>
     </Page>

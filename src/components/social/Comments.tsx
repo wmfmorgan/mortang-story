@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { Comment, Person } from '../../types/database'
 import { Button, Textarea } from '../ui'
@@ -10,8 +10,6 @@ type Props = {
   perspectiveId?: string | null
   personId: string
   isAdmin: boolean
-  label?: string
-  split?: boolean
 }
 
 export function Comments({
@@ -19,14 +17,12 @@ export function Comments({
   perspectiveId = null,
   personId,
   isAdmin,
-  label,
-  split = false,
 }: Props) {
   const [comments, setComments] = useState<Row[]>([])
   const [body, setBody] = useState('')
   const [saving, setSaving] = useState(false)
   const [open, setOpen] = useState(false)
-  const [composing, setComposing] = useState(false)
+  const root = useRef<HTMLDivElement>(null)
 
   async function load() {
     let query = supabase
@@ -45,6 +41,17 @@ export function Comments({
     void load()
   }, [storyId, perspectiveId])
 
+  useEffect(() => {
+    if (!open) return
+    function onPointer(event: MouseEvent) {
+      if (root.current && !root.current.contains(event.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onPointer)
+    return () => document.removeEventListener('mousedown', onPointer)
+  }, [open])
+
   async function submit(event: FormEvent) {
     event.preventDefault()
     if (!body.trim()) return
@@ -57,7 +64,6 @@ export function Comments({
     })
     setBody('')
     setSaving(false)
-    setComposing(false)
     await load()
   }
 
@@ -67,88 +73,79 @@ export function Comments({
   }
 
   const count = comments.length
-  const toggleLabel =
-    label ??
-    (count === 0 ? 'Comments' : count === 1 ? '1 comment' : `${count} comments`)
 
   return (
-    <div className={split ? 'contents' : ''}>
+    <div ref={root} className="relative">
       <button
         type="button"
-        className={`text-xs tracking-wide text-ink-soft hover:text-ink ${
-          split ? 'col-start-2 row-start-1 justify-self-end text-right' : ''
-        }`}
-        onClick={() => {
-          setOpen((value) => !value)
-          if (open) setComposing(false)
-        }}
+        onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
+        aria-label={count === 0 ? 'Comments' : `${count} comments`}
+        className={`inline-flex items-center gap-1 rounded-full border bg-paper px-2 py-0.5 text-xs ${
+          open ? 'border-oxblood text-oxblood' : 'border-rule text-ink-soft hover:bg-paper-dark'
+        }`}
       >
-        {toggleLabel}
+        <CommentIcon />
+        {count > 0 ? <span>{count}</span> : null}
       </button>
       {open ? (
-        <div
-          className={`space-y-3 ${
-            split
-              ? 'col-span-2 mt-2 border-t border-rule/70 pt-3'
-              : 'mt-3 border-l border-rule pl-3'
-          }`}
-        >
-          {count === 0 && !composing ? (
-            <p className="text-xs text-ink-soft">No comments yet.</p>
-          ) : null}
-          {comments.map((comment) => (
-            <div key={comment.id}>
-              <div className="flex items-baseline justify-between gap-3">
-                <p className="text-xs font-medium text-ink-soft">{comment.author.display_name}</p>
-                {comment.author_person_id === personId || isAdmin ? (
-                  <button
-                    type="button"
-                    className="text-xs text-ink-soft hover:text-oxblood"
-                    onClick={() => void remove(comment.id)}
-                  >
-                    Delete
-                  </button>
-                ) : null}
-              </div>
-              <p className="mt-0.5 whitespace-pre-wrap text-sm text-ink-soft">{comment.body}</p>
-            </div>
-          ))}
-          {composing ? (
-            <form onSubmit={(event) => void submit(event)} className="space-y-2">
-              <Textarea
-                value={body}
-                onChange={(event) => setBody(event.target.value)}
-                placeholder="A short comment — not a telling."
-                autoFocus
-              />
-              <div className="flex flex-wrap gap-2">
-                <Button type="submit" variant="ghost" disabled={saving || !body.trim()}>
-                  {saving ? 'Saving…' : 'Post'}
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => {
-                    setComposing(false)
-                    setBody('')
-                  }}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          ) : (
-            <button
-              type="button"
-              className="text-xs text-oxblood hover:underline"
-              onClick={() => setComposing(true)}
-            >
-              Add a comment
-            </button>
-          )}
+        <div className="absolute bottom-0 left-full z-30 ml-2 w-72 rounded-xl border border-rule bg-paper p-3 shadow-md max-sm:left-auto max-sm:right-0 max-sm:bottom-full max-sm:mb-2 max-sm:ml-0">
+          <p className="mb-2 text-xs font-medium tracking-wide text-ink-soft">Comments</p>
+          <div className="mb-3 max-h-56 space-y-3 overflow-y-auto">
+            {count === 0 ? (
+              <p className="text-xs text-ink-soft">None yet. Add the first.</p>
+            ) : (
+              comments.map((comment) => (
+                <div key={comment.id}>
+                  <div className="flex items-baseline justify-between gap-3">
+                    <p className="text-xs font-medium text-ink">{comment.author.display_name}</p>
+                    {comment.author_person_id === personId || isAdmin ? (
+                      <button
+                        type="button"
+                        className="text-xs text-ink-soft hover:text-oxblood"
+                        onClick={() => void remove(comment.id)}
+                      >
+                        Delete
+                      </button>
+                    ) : null}
+                  </div>
+                  <p className="mt-0.5 whitespace-pre-wrap text-sm text-ink-soft">{comment.body}</p>
+                </div>
+              ))
+            )}
+          </div>
+          <form onSubmit={(event) => void submit(event)} className="space-y-2">
+            <Textarea
+              value={body}
+              onChange={(event) => setBody(event.target.value)}
+              placeholder="Add a comment"
+              autoFocus
+            />
+            <Button type="submit" variant="ghost" disabled={saving || !body.trim()}>
+              {saving ? 'Saving…' : 'Post'}
+            </Button>
+          </form>
         </div>
       ) : null}
     </div>
+  )
+}
+
+function CommentIcon() {
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      className="h-3.5 w-3.5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      aria-hidden
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M4 5.5h12A1.5 1.5 0 0 1 17.5 7v6A1.5 1.5 0 0 1 16 14.5H9l-3.5 2.5V14.5H4A1.5 1.5 0 0 1 2.5 13V7A1.5 1.5 0 0 1 4 5.5Z"
+      />
+    </svg>
   )
 }
