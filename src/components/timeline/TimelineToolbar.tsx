@@ -6,7 +6,7 @@ import {
   type Density,
   type TimelineFilters,
 } from '../../lib/timelineFilters'
-import { Input } from '../ui'
+import { Button, Input } from '../ui'
 
 type Props = {
   density: Density
@@ -40,7 +40,7 @@ export function TimelineToolbar({
   shown,
   total,
 }: Props) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(true)
   const active = filtersActive(filters)
 
   function togglePerson(id: string) {
@@ -59,17 +59,27 @@ export function TimelineToolbar({
 
   return (
     <div className="mb-8 rounded-xl border border-rule bg-[#fffdf8]/60 px-4 py-3">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Segment
-          label="Cards"
-          value={density}
-          options={[
-            { id: 'full', label: 'Full' },
-            { id: 'compact', label: 'Compact' },
-            { id: 'minimal', label: 'Minimal' },
-          ]}
-          onChange={onDensity}
-        />
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-wrap items-end gap-4">
+          <Segment
+            label="Cards"
+            value={density}
+            options={[
+              { id: 'full', label: 'Full' },
+              { id: 'compact', label: 'Compact' },
+              { id: 'minimal', label: 'Minimal' },
+            ]}
+            onChange={onDensity}
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            aria-expanded={open}
+            onClick={() => setOpen((value) => !value)}
+          >
+            {open ? 'Hide filters' : active ? 'Filters · on' : 'Filters'}
+          </Button>
+        </div>
         <div className="flex flex-wrap items-center gap-3 text-sm text-ink-soft">
           <span>
             {shown === total
@@ -85,14 +95,6 @@ export function TimelineToolbar({
               Clear filters
             </button>
           ) : null}
-          <button
-            type="button"
-            className="text-ink hover:underline"
-            aria-expanded={open}
-            onClick={() => setOpen((value) => !value)}
-          >
-            {open ? 'Hide filters' : active ? 'Show filters · on' : 'Show filters'}
-          </button>
         </div>
       </div>
       {open ? (
