@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { dateParts, formatFuzzyDate, sortKey, type FuzzyDate } from './dates'
+import {
+  dateParts,
+  formatFuzzyDate,
+  sortKey,
+  withDay,
+  withMonth,
+  withSeason,
+  type FuzzyDate,
+} from './dates'
 
 describe('formatFuzzyDate', () => {
   it('formats a year', () => {
@@ -61,6 +69,34 @@ describe('dateParts', () => {
       day: '',
       year: 'c. 1962',
     })
+  })
+})
+
+describe('withSeason / withMonth', () => {
+  const june: FuzzyDate = { year: 1987, month: 6, day: 14, precision: 'day' }
+
+  it('season clears month and day', () => {
+    expect(withSeason(june, 'summer')).toEqual({
+      year: 1987,
+      season: 'summer',
+      month: undefined,
+      day: undefined,
+      precision: 'year',
+    })
+  })
+
+  it('month clears season', () => {
+    expect(withMonth({ year: 1987, season: 'summer', precision: 'year' }, 6)).toEqual({
+      year: 1987,
+      month: 6,
+      day: undefined,
+      season: undefined,
+      precision: 'month',
+    })
+  })
+
+  it('day requires a month', () => {
+    expect(withDay({ year: 1987, precision: 'year' }, 14).day).toBeUndefined()
   })
 })
 

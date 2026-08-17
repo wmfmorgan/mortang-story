@@ -97,6 +97,41 @@ export function formatFuzzyDate(d: FuzzyDate): string {
   return `${circa}${d.year}`
 }
 
+export function withSeason(d: FuzzyDate, season?: Season): FuzzyDate {
+  if (!season) return { ...d, season: undefined }
+  return {
+    ...d,
+    season,
+    month: undefined,
+    day: undefined,
+    precision: 'year',
+  }
+}
+
+export function withMonth(d: FuzzyDate, month?: number): FuzzyDate {
+  if (!month) {
+    return {
+      ...d,
+      month: undefined,
+      day: undefined,
+      precision: 'year',
+    }
+  }
+  return {
+    ...d,
+    month,
+    day: d.month === month ? d.day : undefined,
+    season: undefined,
+    precision: d.month === month && d.day ? 'day' : 'month',
+  }
+}
+
+export function withDay(d: FuzzyDate, day?: number): FuzzyDate {
+  if (!d.month) return { ...d, day: undefined, precision: d.month ? 'month' : 'year' }
+  if (!day) return { ...d, day: undefined, precision: 'month' }
+  return { ...d, day, season: undefined, precision: 'day' }
+}
+
 export function storyToFuzzyDate(story: {
   occurred_year: number
   occurred_month: number | null
