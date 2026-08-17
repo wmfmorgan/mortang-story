@@ -8,6 +8,7 @@ import { Button, ButtonLink, ErrorText, Page, Spinner, Title } from '../componen
 import { useApp } from '../context/AppContext'
 import { fetchStoryDetail } from '../hooks/useStories'
 import { formatFuzzyDate, storyToFuzzyDate } from '../lib/dates'
+import { osmMapUrl } from '../lib/geocode'
 import { downloadStoryBook } from '../lib/pdf/download'
 import { supabase } from '../lib/supabase'
 import type { StoryDetail } from '../types/database'
@@ -87,8 +88,23 @@ export function StoryPage() {
     <Page>
       <p className="text-xs uppercase tracking-wider text-ink-soft">
         {formatFuzzyDate(storyToFuzzyDate(detail))}
-        {detail.place_name ? ` · ${detail.place_name}` : ''}
       </p>
+      {detail.place_name ? (
+        <p className="mt-2 text-sm text-ink-soft">
+          {detail.place_lat != null && detail.place_lng != null ? (
+            <a
+              href={osmMapUrl(detail.place_lat, detail.place_lng)}
+              target="_blank"
+              rel="noreferrer"
+              className="text-oxblood hover:underline"
+            >
+              {detail.place_name}
+            </a>
+          ) : (
+            detail.place_name
+          )}
+        </p>
+      ) : null}
       <Title>{detail.title}</Title>
       <p className="mt-3 text-ink-soft">
         {detail.people.map((item) => (

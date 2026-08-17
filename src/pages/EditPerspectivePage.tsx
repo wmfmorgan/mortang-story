@@ -2,10 +2,12 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { MediaFields, type LinkDraft } from '../components/story/MediaFields'
 import { PersonPicker } from '../components/story/PersonPicker'
-import { Button, ErrorText, Field, Input, Page, Spinner, Subtitle, Textarea, Title } from '../components/ui'
+import { LocationPicker } from '../components/story/LocationPicker'
+import { Button, ErrorText, Field, Page, Spinner, Subtitle, Textarea, Title } from '../components/ui'
 import { useApp } from '../context/AppContext'
 import { usePeople } from '../hooks/usePeople'
 import { fetchStoryDetail } from '../hooks/useStories'
+import type { PlaceValue } from '../lib/geocode'
 import { attachStoryMedia, syncStoryPeople } from '../lib/storyMedia'
 import { supabase } from '../lib/supabase'
 import type { Perspective, StoryDetail } from '../types/database'
@@ -18,7 +20,7 @@ export function EditPerspectivePage() {
   const [story, setStory] = useState<StoryDetail | null>(null)
   const [existing, setExisting] = useState<Perspective | null>(null)
   const [body, setBody] = useState('')
-  const [placeName, setPlaceName] = useState('')
+  const [place, setPlace] = useState<PlaceValue | null>(null)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [files, setFiles] = useState<File[]>([])
   const [links, setLinks] = useState<LinkDraft[]>([])
@@ -34,7 +36,11 @@ export function EditPerspectivePage() {
         const mine = detail?.perspectives.find((item) => item.author_person_id === person.id)
         setExisting(mine ?? null)
         setBody(mine?.body ?? '')
-        setPlaceName(detail?.place_name ?? '')
+        setPlace(
+          detail?.place_name && detail.place_lat != null && detail.place_lng != null
+            ? { name: detail.place_name, lat: detail.place_lat, lng: detail.place_lng }
+            : null,
+        )
         const tagged = detail?.people.map((item) => item.id) ?? []
         setSelectedIds(tagged.includes(person.id) ? tagged : [...tagged, person.id])
         setLoading(false)
@@ -93,11 +99,22 @@ export function EditPerspectivePage() {
 
       await syncStoryPeople(currentStory.id, selectedIds)
 
-      const nextPlace = placeName.trim() || null
-      if (nextPlace !== (currentStory.place_name ?? null)) {
+      const nextName = place?.name ?? null
+      const nextLat = place?.lat ?? null
+      const nextLng = place?.lng ?? null
+      if (
+        nextName !== (currentStory.place_name ?? null) ||
+        nextLat !== (currentStory.place_lat ?? null) ||
+        nextLng !== (currentStory.place_lng ?? null)
+      ) {
         const { error: placeError } = await supabase
           .from('stories')
-          .update({ place_name: nextPlace, updated_at: new Date().toISOString() })
+          .update({
+            place_name: nextName,
+            place_lat: nextLat,
+            place_lng: nextLng,
+            updated_at: new Date().toISOString(),
+          })
           .eq('id', currentStory.id)
         if (placeError) throw new Error(placeError.message)
       }
@@ -157,12 +174,11 @@ export function EditPerspectivePage() {
             }}
           />
         </Field>
-        <Field label="Place" hint="A name is enough. This is for the event, not just your telling.">
-          <Input
-            value={placeName}
-            onChange={(event) => setPlaceName(event.target.value)}
-            placeholder="The lake cabin"
-          />
+        <Field
+          label="Location"
+          hint="Search an address or place. This is for the event, not just your telling."
+        >
+          <LocationPicker value={place} onChange={setPlace} />
         </Field>
         <MediaFields files={files} links={links} onFiles={setFiles} onLinks={setLinks} />
         <ErrorText>{peopleError}</ErrorText>

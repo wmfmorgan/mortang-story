@@ -3,8 +3,10 @@ import type { FuzzyDate } from '../../lib/dates'
 import { attachStoryMedia } from '../../lib/storyMedia'
 import { supabase } from '../../lib/supabase'
 import type { Person } from '../../types/database'
+import type { PlaceValue } from '../../lib/geocode'
 import { Button, ErrorText, Field, Input, Textarea } from '../ui'
 import { FuzzyDateInput } from './FuzzyDateInput'
+import { LocationPicker } from './LocationPicker'
 import { MediaFields, type LinkDraft } from './MediaFields'
 import { PersonPicker } from './PersonPicker'
 
@@ -28,7 +30,7 @@ export function StoryComposer({
   const [date, setDate] = useState<FuzzyDate>({ year: now, precision: 'year' })
   const [selectedIds, setSelectedIds] = useState<string[]>([author.id])
   const [body, setBody] = useState('')
-  const [placeName, setPlaceName] = useState('')
+  const [place, setPlace] = useState<PlaceValue | null>(null)
   const [files, setFiles] = useState<File[]>([])
   const [links, setLinks] = useState<LinkDraft[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -60,7 +62,9 @@ export function StoryComposer({
           precision: date.precision,
           circa: Boolean(date.circa),
           season: date.season ?? null,
-          place_name: placeName.trim() || null,
+          place_name: place?.name ?? null,
+          place_lat: place?.lat ?? null,
+          place_lng: place?.lng ?? null,
           created_by_person_id: author.id,
         })
         .select('id')
@@ -131,12 +135,8 @@ export function StoryComposer({
           placeholder="What happened, as you remember it."
         />
       </Field>
-      <Field label="Place" hint="A name is enough. A map view comes later.">
-        <Input
-          value={placeName}
-          onChange={(event) => setPlaceName(event.target.value)}
-          placeholder="The lake cabin"
-        />
+      <Field label="Location" hint="Search an address, city, or landmark. Pick a result to save it.">
+        <LocationPicker value={place} onChange={setPlace} />
       </Field>
       <MediaFields files={files} links={links} onFiles={setFiles} onLinks={setLinks} />
       <ErrorText>{error}</ErrorText>
