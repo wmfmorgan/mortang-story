@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { dateParts, storyToFuzzyDate } from '../../lib/dates'
 import { signedPhotoUrl } from '../../lib/supabase'
 import type { StoryListItem } from '../../types/database'
@@ -7,10 +7,15 @@ import type { StoryListItem } from '../../types/database'
 export function StoryNode({
   story,
   side,
+  expanded,
+  onExpand,
 }: {
   story: StoryListItem
   side: 'left' | 'right'
+  expanded: boolean
+  onExpand: () => void
 }) {
+  const navigate = useNavigate()
   const [thumbs, setThumbs] = useState<string[]>([])
 
   useEffect(() => {
@@ -30,10 +35,20 @@ export function StoryNode({
       : `${story.perspective_count} tellings`
   const parts = dateParts(storyToFuzzyDate(story))
 
+  function open() {
+    if (expanded || !story.original_telling) {
+      navigate(`/stories/${story.id}`)
+      return
+    }
+    onExpand()
+  }
+
   return (
-    <Link
-      to={`/stories/${story.id}`}
-      className="relative flex overflow-visible bg-[#fffdf8] shadow-sm ring-1 ring-rule/80 transition hover:shadow-md"
+    <button
+      type="button"
+      onClick={open}
+      aria-expanded={expanded}
+      className="relative flex w-full overflow-visible bg-[#fffdf8] text-left shadow-sm ring-1 ring-rule/80 transition hover:shadow-md"
     >
       <Pointer side="left" className={side === 'right' ? '' : 'md:hidden'} />
       {side === 'left' ? <Pointer side="right" className="hidden md:block" /> : null}
@@ -55,6 +70,17 @@ export function StoryNode({
             ))}
           </div>
         ) : null}
+        {expanded && story.original_telling ? (
+          <div className="mt-4 border-t border-rule/70 pt-3">
+            <p className="text-sm font-medium tracking-wide text-ink-soft">
+              As Remembered by {story.original_telling.author_name}
+            </p>
+            <p className="mt-2 whitespace-pre-wrap font-serif text-base leading-relaxed text-ink">
+              {story.original_telling.body}
+            </p>
+            <p className="mt-3 text-xs text-ink-soft">Click again for the full story</p>
+          </div>
+        ) : null}
       </div>
       <div className="flex w-[4.5rem] shrink-0 flex-col items-center justify-center border-l border-rule/70 px-2 py-3 text-center">
         {parts.eyebrow ? (
@@ -69,7 +95,7 @@ export function StoryNode({
           {parts.year}
         </span>
       </div>
-    </Link>
+    </button>
   )
 }
 

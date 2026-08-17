@@ -95,6 +95,7 @@ export type StoryListItem = Story & {
   perspective_count: number
   first_photo_path: string | null
   photo_paths: string[]
+  original_telling: { body: string; author_name: string } | null
 }
 
 export type StoryDetail = Story & {

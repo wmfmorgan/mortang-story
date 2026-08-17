@@ -1,7 +1,10 @@
+import { useState } from 'react'
 import type { StoryListItem } from '../../types/database'
 import { StoryNode } from './StoryNode'
 
 export function Timeline({ stories }: { stories: StoryListItem[] }) {
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+
   return (
     <ol className="relative">
       <span
@@ -25,7 +28,12 @@ export function Timeline({ stories }: { stories: StoryListItem[] }) {
                   : 'col-start-2 row-start-1 md:col-start-3 md:pl-5'
               }
             >
-              <StoryNode story={story} side={side === 'left' ? 'left' : 'right'} />
+              <StoryNode
+                story={story}
+                side={side === 'left' ? 'left' : 'right'}
+                expanded={expandedId === story.id}
+                onExpand={() => setExpandedId(story.id)}
+              />
             </div>
           </li>
         )

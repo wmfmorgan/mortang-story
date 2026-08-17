@@ -5,7 +5,11 @@ import type { Media, Person, Perspective, Story, StoryDetail, StoryListItem } fr
 
 type StoryRow = Story & {
   story_people: { person: Person }[] | null
-  perspectives: Pick<Perspective, 'id'>[] | null
+  perspectives:
+    | (Pick<Perspective, 'id' | 'body' | 'is_original'> & {
+        author: Pick<Person, 'display_name'> | null
+      })[]
+    | null
   media: Pick<Media, 'kind' | 'storage_path'>[] | null
 }
 
@@ -22,12 +26,19 @@ function toListItem(row: StoryRow): StoryListItem {
     .filter((item) => item.kind === 'photo' && item.storage_path)
     .map((item) => item.storage_path as string)
     .slice(0, 3)
+  const original = (row.perspectives ?? []).find((item) => item.is_original)
   return {
     ...row,
     people: (row.story_people ?? []).map((link) => link.person).filter(Boolean),
     perspective_count: row.perspectives?.length ?? 0,
     first_photo_path: photoPaths[0] ?? null,
     photo_paths: photoPaths,
+    original_telling: original
+      ? {
+          body: original.body,
+          author_name: original.author?.display_name ?? 'Family',
+        }
+      : null,
   }
 }
 
@@ -48,7 +59,7 @@ export function useStories(familyId: string) {
         `
         *,
         story_people ( person:people (*) ),
-        perspectives ( id ),
+        perspectives ( id, body, is_original, author:people!perspectives_author_person_id_fkey ( display_name ) ),
         media ( kind, storage_path )
       `,
       )
@@ -114,7 +125,7 @@ export async function fetchStoriesForPerson(
       story:stories (
         *,
         story_people ( person:people (*) ),
-        perspectives ( id ),
+        perspectives ( id, body, is_original, author:people!perspectives_author_person_id_fkey ( display_name ) ),
         media ( kind, storage_path )
       )
     `,
