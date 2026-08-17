@@ -71,3 +71,17 @@ export async function syncStoryPeople(storyId: string, personIds: string[]): Pro
     if (deleteError) throw new Error(deleteError.message)
   }
 }
+
+export async function deleteStoryMedia(media: {
+  id: string
+  storage_path: string | null
+}): Promise<void> {
+  if (media.storage_path) {
+    const { error: storageError } = await supabase.storage
+      .from(FAMILY_MEDIA_BUCKET)
+      .remove([media.storage_path])
+    if (storageError) throw new Error(storageError.message)
+  }
+  const { error } = await supabase.from('media').delete().eq('id', media.id)
+  if (error) throw new Error(error.message)
+}

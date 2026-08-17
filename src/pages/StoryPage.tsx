@@ -114,7 +114,12 @@ export function StoryPage() {
         ) : null}
       </div>
       <div className="mt-8">
-        <StoryMedia media={detail.media} />
+        <StoryMedia
+          media={detail.media}
+          currentPersonId={person.id}
+          isAdmin={person.role === 'admin'}
+          onChange={(media) => setStory({ ...detail, media })}
+        />
       </div>
       <div className="mt-6 space-y-4">
         {original ? (
