@@ -40,7 +40,7 @@ export function TimelineToolbar({
   shown,
   total,
 }: Props) {
-  const [open, setOpen] = useState(true)
+  const [open, setOpen] = useState(false)
   const active = filtersActive(filters)
 
   function togglePerson(id: string) {
@@ -58,19 +58,23 @@ export function TimelineToolbar({
   }
 
   return (
-    <div className="mb-8 rounded-xl border border-rule bg-[#fffdf8]/60 px-4 py-3">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div className="flex flex-wrap items-end gap-4">
-          <Segment
-            label="Cards"
-            value={density}
-            options={[
-              { id: 'full', label: 'Full' },
-              { id: 'compact', label: 'Compact' },
-              { id: 'minimal', label: 'Minimal' },
-            ]}
-            onChange={onDensity}
-          />
+    <div className="mb-6 rounded-xl border border-rule bg-[#fffdf8]/60 px-4 py-2">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          {([
+            { id: 'full', label: 'Full' },
+            { id: 'compact', label: 'Compact' },
+            { id: 'minimal', label: 'Minimal' },
+          ] as const).map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              className={option.id === density ? segmentOn : segmentOff}
+              onClick={() => onDensity(option.id)}
+            >
+              {option.label}
+            </button>
+          ))}
           <Button
             type="button"
             variant="ghost"
@@ -194,36 +198,6 @@ export function TimelineToolbar({
       </label>
       </div>
       ) : null}
-    </div>
-  )
-}
-
-function Segment<T extends string>({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string
-  value: T
-  options: { id: T; label: string }[]
-  onChange: (value: T) => void
-}) {
-  return (
-    <div>
-      <p className="mb-1 text-xs font-medium uppercase tracking-wider text-ink-soft">{label}</p>
-      <div className="flex flex-wrap gap-1">
-        {options.map((option) => (
-          <button
-            key={option.id}
-            type="button"
-            className={option.id === value ? segmentOn : segmentOff}
-            onClick={() => onChange(option.id)}
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
     </div>
   )
 }
